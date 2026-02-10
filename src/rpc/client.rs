@@ -11,10 +11,10 @@ use anyhow::bail;
 use fastcrypto::encoding::Base64;
 use reqwest::header::{HeaderMap, AUTHORIZATION};
 use reqwest::Client;
-use mys_json_rpc_types::MysTransactionBlockEffects;
-use mys_types::base_types::{ObjectRef, MysAddress};
-use mys_types::signature::GenericSignature;
-use mys_types::transaction::TransactionData;
+use myso_json_rpc_types::MySoTransactionBlockEffects;
+use myso_types::base_types::{ObjectRef, MySoAddress};
+use myso_types::signature::GenericSignature;
+use myso_types::transaction::TransactionData;
 
 #[derive(Clone)]
 pub struct GasPoolRpcClient {
@@ -84,7 +84,7 @@ impl GasPoolRpcClient {
         &self,
         gas_budget: u64,
         reserve_duration_secs: u64,
-    ) -> anyhow::Result<(MysAddress, ReservationID, Vec<ObjectRef>)> {
+    ) -> anyhow::Result<(MySoAddress, ReservationID, Vec<ObjectRef>)> {
         let request = ReserveGasRequest {
             gas_budget,
             reserve_duration_secs,
@@ -128,7 +128,7 @@ impl GasPoolRpcClient {
         reservation_id: ReservationID,
         tx_data: &TransactionData,
         user_sig: &GenericSignature,
-    ) -> anyhow::Result<MysTransactionBlockEffects> {
+    ) -> anyhow::Result<MySoTransactionBlockEffects> {
         let mut headers = HeaderMap::new();
         headers.insert(
             AUTHORIZATION,

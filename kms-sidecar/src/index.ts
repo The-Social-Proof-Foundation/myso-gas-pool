@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
-import { fromB64 } from '@socialproof/mys/utils';
+import { fromB64 } from '@socialproof/myso/utils';
 import { getPublicKey, signAndVerify } from './gcpKmsUtils';
 
 async function main() {
@@ -12,8 +12,8 @@ async function main() {
     // Environment variables for Google Cloud KMS
     const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT_ID;
     const LOCATION = process.env.KMS_LOCATION || 'us-central1';
-    const KEYRING = process.env.KMS_KEYRING || 'mys-gas-pool-keyring';
-    const KEY_NAME = process.env.KMS_KEY_NAME || 'mys-sponsor-key';
+    const KEYRING = process.env.KMS_KEYRING || 'myso-gas-pool-keyring';
+    const KEY_NAME = process.env.KMS_KEY_NAME || 'myso-sponsor-key';
     
     const keyPath = `projects/${PROJECT_ID}/locations/${LOCATION}/keyRings/${KEYRING}/cryptoKeys/${KEY_NAME}/cryptoKeyVersions/1`;
     

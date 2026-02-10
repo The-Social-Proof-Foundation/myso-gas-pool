@@ -13,13 +13,13 @@ use std::collections::VecDeque;
 use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
 use std::time::Duration;
-use mys_json_rpc_types::MysTransactionBlockEffectsAPI;
-use mys_types::base_types::MysAddress;
-use mys_types::coin::{PAY_MODULE_NAME, PAY_SPLIT_N_FUNC_NAME};
-use mys_types::gas_coin::GAS;
-use mys_types::programmable_transaction_builder::ProgrammableTransactionBuilder;
-use mys_types::transaction::{Argument, Transaction, TransactionData};
-use mys_types::MYS_FRAMEWORK_PACKAGE_ID;
+use myso_json_rpc_types::MySoTransactionBlockEffectsAPI;
+use myso_types::base_types::MySoAddress;
+use myso_types::coin::{PAY_MODULE_NAME, PAY_SPLIT_N_FUNC_NAME};
+use myso_types::gas_coin::GAS;
+use myso_types::programmable_transaction_builder::ProgrammableTransactionBuilder;
+use myso_types::transaction::{Argument, Transaction, TransactionData};
+use myso_types::MYSO_FRAMEWORK_PACKAGE_ID;
 use tokio::task::JoinHandle;
 use tokio::time::Instant;
 use tokio_retry::strategy::{jitter, ExponentialBackoff};
@@ -40,7 +40,7 @@ struct CoinSplitEnv {
     target_init_coin_balance: u64,
     gas_cost_per_object: u64,
     signer: Arc<dyn TxSigner>,
-    sponsor_address: MysAddress,
+    sponsor_address: MySoAddress,
     mys_client: MysClient,
     task_queue: Arc<Mutex<VecDeque<JoinHandle<Vec<GasCoin>>>>>,
     total_coin_count: Arc<AtomicUsize>,
@@ -87,7 +87,7 @@ impl CoinSplitEnv {
             let mut pt_builder = ProgrammableTransactionBuilder::new();
             let pure_arg = pt_builder.pure(split_count).unwrap();
             pt_builder.programmable_move_call(
-                MYS_FRAMEWORK_PACKAGE_ID,
+                MYSO_FRAMEWORK_PACKAGE_ID,
                 PAY_MODULE_NAME.into(),
                 PAY_SPLIT_N_FUNC_NAME.into(),
                 vec![GAS::type_tag()],
@@ -399,14 +399,14 @@ mod tests {
     use crate::storage::connect_storage_for_testing;
     use crate::mys_client::MysClient;
     use crate::test_env::start_mys_cluster;
-    use mys_types::gas_coin::MIST_PER_MYS;
+    use myso_types::gas_coin::MIST_PER_MYSO;
 
     // TODO: Add more accurate tests.
 
     #[tokio::test]
     async fn test_basic_init_flow() {
         telemetry_subscribers::init_for_testing();
-        let (cluster, signer) = start_mys_cluster(vec![1000 * MIST_PER_MYS]).await;
+        let (cluster, signer) = start_mys_cluster(vec![1000 * MIST_PER_MYSO]).await;
         let fullnode_url = cluster.fullnode_handle.rpc_url;
         let storage = connect_storage_for_testing(signer.get_address()).await;
         let mys_client = MysClient::new(&fullnode_url, None).await;
@@ -414,7 +414,7 @@ mod tests {
             mys_client,
             storage.clone(),
             CoinInitConfig {
-                target_init_balance: MIST_PER_MYS,
+                target_init_balance: MIST_PER_MYSO,
                 refresh_interval_sec: 200,
             },
             signer,
@@ -426,10 +426,10 @@ mod tests {
     #[tokio::test]
     async fn test_init_non_even_split() {
         telemetry_subscribers::init_for_testing();
-        let (cluster, signer) = start_mys_cluster(vec![10000000 * MIST_PER_MYS]).await;
+        let (cluster, signer) = start_mys_cluster(vec![10000000 * MIST_PER_MYSO]).await;
         let fullnode_url = cluster.fullnode_handle.rpc_url;
         let storage = connect_storage_for_testing(signer.get_address()).await;
-        let target_init_balance = 12345 * MIST_PER_MYS;
+        let target_init_balance = 12345 * MIST_PER_MYSO;
         let mys_client = MysClient::new(&fullnode_url, None).await;
         let _ = GasPoolInitializer::start(
             mys_client,
@@ -447,7 +447,7 @@ mod tests {
     #[tokio::test]
     async fn test_add_new_funds_to_pool() {
         telemetry_subscribers::init_for_testing();
-        let (cluster, signer) = start_mys_cluster(vec![1000 * MIST_PER_MYS]).await;
+        let (cluster, signer) = start_mys_cluster(vec![1000 * MIST_PER_MYSO]).await;
         let sponsor = signer.get_address();
         let fullnode_url = cluster.fullnode_handle.rpc_url.clone();
         let storage = connect_storage_for_testing(signer.get_address()).await;
@@ -456,7 +456,7 @@ mod tests {
             mys_client,
             storage.clone(),
             CoinInitConfig {
-                target_init_balance: MIST_PER_MYS,
+                target_init_balance: MIST_PER_MYSO,
                 refresh_interval_sec: 1,
             },
             signer,
@@ -476,7 +476,7 @@ mod tests {
             .test_transaction_builder_with_sender(new_addr)
             .await
             .transfer_mys(
-                Some(NEW_COIN_BALANCE_FACTOR_THRESHOLD * MIST_PER_MYS),
+                Some(NEW_COIN_BALANCE_FACTOR_THRESHOLD * MIST_PER_MYSO),
                 sponsor,
             )
             .build();

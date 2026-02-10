@@ -6,10 +6,10 @@ use crate::types::ReservationID;
 use fastcrypto::encoding::Base64;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use mys_json_rpc_types::{MysObjectRef, MysTransactionBlockEffects};
-use mys_types::base_types::{ObjectRef, MysAddress};
+use myso_json_rpc_types::{MySoObjectRef, MySoTransactionBlockEffects};
+use myso_types::base_types::{ObjectRef, MySoAddress};
 
-// 2 MYS.
+// 2 MYSO.
 pub const MAX_BUDGET: u64 = 2_000_000_000;
 
 // 10 mins.
@@ -50,14 +50,14 @@ pub struct ReserveGasResponse {
 
 #[derive(Debug, JsonSchema, Serialize, Deserialize)]
 pub struct ReserveGasResult {
-    pub sponsor_address: MysAddress,
+    pub sponsor_address: MySoAddress,
     pub reservation_id: ReservationID,
-    pub gas_coins: Vec<MysObjectRef>,
+    pub gas_coins: Vec<MySoObjectRef>,
 }
 
 impl ReserveGasResponse {
     pub fn new_ok(
-        sponsor_address: MysAddress,
+        sponsor_address: MySoAddress,
         reservation_id: ReservationID,
         gas_coins: Vec<ObjectRef>,
     ) -> Self {
@@ -88,12 +88,12 @@ pub struct ExecuteTxRequest {
 
 #[derive(Debug, JsonSchema, Serialize, Deserialize)]
 pub struct ExecuteTxResponse {
-    pub effects: Option<MysTransactionBlockEffects>,
+    pub effects: Option<MySoTransactionBlockEffects>,
     pub error: Option<String>,
 }
 
 impl ExecuteTxResponse {
-    pub fn new_ok(effects: MysTransactionBlockEffects) -> Self {
+    pub fn new_ok(effects: MySoTransactionBlockEffects) -> Self {
         Self {
             effects: Some(effects),
             error: None,

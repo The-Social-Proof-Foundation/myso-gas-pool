@@ -6,8 +6,8 @@ use anyhow::bail;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
-use mys_json_rpc_types::MysObjectRef;
-use mys_types::base_types::{ObjectID, ObjectRef};
+use myso_json_rpc_types::MySoObjectRef;
+use myso_types::base_types::{ObjectID, ObjectRef};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct GasCoin {
@@ -17,7 +17,7 @@ pub struct GasCoin {
 
 #[derive(Debug, JsonSchema, Serialize, Deserialize)]
 pub struct MysGasCoin {
-    pub object_ref: MysObjectRef,
+    pub object_ref: MySoObjectRef,
     pub balance: u64,
 }
 

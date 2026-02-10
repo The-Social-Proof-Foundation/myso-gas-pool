@@ -5,9 +5,9 @@
 use moka::sync::SegmentedCache;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
-use mys_types::base_types::ObjectID;
-use mys_types::object::Owner;
-use mys_types::transaction::{InputObjectKind, TransactionData, TransactionDataAPI};
+use myso_types::base_types::ObjectID;
+use myso_types::object::Owner;
+use myso_types::transaction::{InputObjectKind, TransactionData, TransactionDataAPI};
 use tracing::{debug, warn};
 
 const CACHE_SIZE: u64 = 1000000;
@@ -260,12 +260,12 @@ mod tests {
     use super::*;
     use std::collections::HashMap;
     use std::sync::Mutex;
-    use mys_types::base_types::random_object_ref;
-    use mys_types::base_types::{SequenceNumber, MysAddress};
-    use mys_types::digests::ObjectDigest;
-    use mys_types::programmable_transaction_builder::ProgrammableTransactionBuilder;
-    use mys_types::transaction::TransactionKind;
-    use mys_types::transaction::{CallArg, ObjectArg};
+    use myso_types::base_types::random_object_ref;
+    use myso_types::base_types::{SequenceNumber, MySoAddress};
+    use myso_types::digests::ObjectDigest;
+    use myso_types::programmable_transaction_builder::ProgrammableTransactionBuilder;
+    use myso_types::transaction::TransactionKind;
+    use myso_types::transaction::{CallArg, ObjectArg};
 
     struct MockMysClient {
         objects: Arc<Mutex<HashMap<ObjectID, (Owner, u64)>>>,
@@ -313,7 +313,7 @@ mod tests {
         immutable: Vec<(ObjectID, u64)>,
         shared: Vec<ObjectID>,
     ) -> TransactionData {
-        let dummy_address = MysAddress::random_for_testing_only();
+        let dummy_address = MySoAddress::random_for_testing_only();
         let mut ptb = ProgrammableTransactionBuilder::new();
         for (obj, version) in address_owned.into_iter().chain(immutable) {
             ptb.input(CallArg::Object(ObjectArg::ImmOrOwnedObject((
@@ -360,7 +360,7 @@ mod tests {
         owners.insert(
             obj_id,
             (
-                Owner::AddressOwner(MysAddress::random_for_testing_only()),
+                Owner::AddressOwner(MySoAddress::random_for_testing_only()),
                 1,
             ),
         );
@@ -398,7 +398,7 @@ mod tests {
         owners.insert(
             obj_id,
             (
-                Owner::AddressOwner(MysAddress::random_for_testing_only()),
+                Owner::AddressOwner(MySoAddress::random_for_testing_only()),
                 1,
             ),
         );
@@ -425,7 +425,7 @@ mod tests {
         owners.insert(
             obj_id,
             (
-                Owner::AddressOwner(MysAddress::random_for_testing_only()),
+                Owner::AddressOwner(MySoAddress::random_for_testing_only()),
                 1,
             ),
         );
@@ -444,7 +444,7 @@ mod tests {
             &tx_data,
             vec![(
                 obj_id,
-                Owner::AddressOwner(MysAddress::random_for_testing_only()),
+                Owner::AddressOwner(MySoAddress::random_for_testing_only()),
                 2,
             )],
         );
@@ -462,7 +462,7 @@ mod tests {
         // Update object to version 3
         client.update_owner(
             obj_id,
-            Owner::AddressOwner(MysAddress::random_for_testing_only()),
+            Owner::AddressOwner(MySoAddress::random_for_testing_only()),
             3,
         );
 
@@ -479,7 +479,7 @@ mod tests {
         owners.insert(
             obj_id,
             (
-                Owner::AddressOwner(MysAddress::random_for_testing_only()),
+                Owner::AddressOwner(MySoAddress::random_for_testing_only()),
                 1,
             ),
         );
@@ -512,7 +512,7 @@ mod tests {
         owners.insert(
             obj_id,
             (
-                Owner::AddressOwner(MysAddress::random_for_testing_only()),
+                Owner::AddressOwner(MySoAddress::random_for_testing_only()),
                 1,
             ),
         );
@@ -547,7 +547,7 @@ mod tests {
         owners.insert(
             obj_id,
             (
-                Owner::AddressOwner(MysAddress::random_for_testing_only()),
+                Owner::AddressOwner(MySoAddress::random_for_testing_only()),
                 1,
             ),
         );
@@ -580,7 +580,7 @@ mod tests {
         drop(locks);
 
         // Update object to address owned at version 3
-        let new_address_owner = Owner::AddressOwner(MysAddress::random_for_testing_only());
+        let new_address_owner = Owner::AddressOwner(MySoAddress::random_for_testing_only());
         client.update_owner(obj_id, new_address_owner.clone(), 3);
 
         // Try with version 3 - should re-query lock the object since it's address owned again

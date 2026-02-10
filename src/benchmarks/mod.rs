@@ -11,10 +11,10 @@ use rand::rngs::OsRng;
 use rand::Rng;
 use shared_crypto::intent::{Intent, IntentMessage};
 use std::sync::Arc;
-use mys_config::node::DEFAULT_VALIDATOR_GAS_PRICE;
-use mys_types::crypto::{get_account_key_pair, Signature};
-use mys_types::programmable_transaction_builder::ProgrammableTransactionBuilder;
-use mys_types::transaction::{TransactionData, TransactionKind};
+use myso_config::node::DEFAULT_VALIDATOR_GAS_PRICE;
+use myso_types::crypto::{get_account_key_pair, Signature};
+use myso_types::programmable_transaction_builder::ProgrammableTransactionBuilder;
+use myso_types::transaction::{TransactionData, TransactionKind};
 use tokio::time::{interval, Duration, Instant};
 
 #[derive(Copy, Clone, ValueEnum)]
@@ -86,7 +86,7 @@ impl BenchmarkMode {
                         DEFAULT_VALIDATOR_GAS_PRICE,
                         sponsor,
                     );
-                    let intent_msg = IntentMessage::new(Intent::mys_transaction(), &tx_data);
+                    let intent_msg = IntentMessage::new(Intent::myso_transaction(), &tx_data);
                     let user_sig = Signature::new_secure(&intent_msg, &keypair).into();
                     let result = client.execute_tx(reservation_id, &tx_data, &user_sig).await;
                     if let Err(err) = result {

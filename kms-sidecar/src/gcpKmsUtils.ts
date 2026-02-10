@@ -1,13 +1,13 @@
 import { KeyManagementServiceClient } from '@google-cloud/kms';
-import { Secp256r1PublicKey } from '@socialproof/mys/keypairs/secp256r1';
-import { fromB64, toB64 } from '@socialproof/mys/utils';
+import { Secp256r1PublicKey } from '@socialproof/myso/keypairs/secp256r1';
+import { fromB64, toB64 } from '@socialproof/myso/utils';
 import {
     toSerializedSignature,
     SIGNATURE_FLAG_TO_SCHEME,
     SignatureScheme,
     SignatureFlag,
     messageWithIntent,
-} from '@socialproof/mys/cryptography';
+} from '@socialproof/myso/cryptography';
 import { blake2b } from '@noble/hashes/blake2b';
 
 // Compress uncompressed public key from raw bytes

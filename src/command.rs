@@ -12,12 +12,12 @@ use crate::mys_client::MysClient;
 use clap::*;
 use std::net::{IpAddr, SocketAddr};
 use std::path::PathBuf;
-use mys_config::Config;
+use myso_config::Config;
 use tracing::{error, info};
 
 #[derive(Parser)]
 #[command(
-    name = "mys-gas-station",
+    name = "myso-gas-station",
     about = "MySocail Gas Station",
     rename_all = "kebab-case"
 )]
@@ -46,7 +46,7 @@ impl Command {
         let registry_service = mysten_metrics::start_prometheus_server(metric_address);
         let prometheus_registry = registry_service.default_registry();
         let telemetry_config = telemetry_subscribers::TelemetryConfig::new()
-            .with_log_level("off,mys_gas_station=debug")
+            .with_log_level("off,myso_gas_station=debug")
             .with_env()
             .with_prom_registry(&prometheus_registry);
         let _guard = telemetry_config.init();

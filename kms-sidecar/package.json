@@ -1,5 +1,5 @@
 {
-  "name": "mys-gcp-kms-sidecar",
+  "name": "myso-gcp-kms-sidecar",
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
@@ -11,7 +11,7 @@
     "@google-cloud/kms": "^4.0.0",
     "@noble/curves": "^1.0.0",
     "@noble/hashes": "^1.3.0",
-    "@socialproof/mys": "^0.0.1",
+    "@socialproof/myso": "^0.0.1",
     "asn1-ts": "^1.0.0",
     "dotenv": "^16.5.0",
     "express": "^4.18.2"

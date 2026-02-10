@@ -6,8 +6,8 @@ use crate::tx_signer::{SidecarTxSigner, TxSigner};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use mys_types::base_types::{random_object_ref, MysAddress};
-use mys_types::transaction::{ProgrammableTransaction, TransactionData, TransactionKind};
+use myso_types::base_types::{random_object_ref, MySoAddress};
+use myso_types::transaction::{ProgrammableTransaction, TransactionData, TransactionKind};
 
 pub async fn run_kms_stress_test(kms_url: String, num_tasks: usize) {
     let signer = SidecarTxSigner::new(kms_url).await;
@@ -16,7 +16,7 @@ pub async fn run_kms_stress_test(kms_url: String, num_tasks: usize) {
             inputs: vec![],
             commands: vec![],
         }),
-        MysAddress::ZERO,
+        MySoAddress::ZERO,
         random_object_ref(),
         1000,
         1000,

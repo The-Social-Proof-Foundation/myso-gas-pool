@@ -10,33 +10,33 @@ use futures_util::StreamExt;
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::time::Duration;
-use mys_json_rpc_types::MysTransactionBlockEffectsAPI;
-use mys_json_rpc_types::{
-    MysData, MysObjectDataOptions, MysObjectResponse, MysTransactionBlockEffects,
-    MysTransactionBlockResponseOptions,
+use myso_json_rpc_types::MySoTransactionBlockEffectsAPI;
+use myso_json_rpc_types::{
+    MySoData, MySoObjectDataOptions, MySoObjectResponse, MySoTransactionBlockEffects,
+    MySoTransactionBlockResponseOptions,
 };
-use mys_sdk::MysClientBuilder;
-use mys_types::base_types::{ObjectID, ObjectRef, MysAddress};
-use mys_types::coin::{PAY_MODULE_NAME, PAY_SPLIT_N_FUNC_NAME};
-use mys_types::gas_coin::GAS;
-use mys_types::object::Owner;
-use mys_types::programmable_transaction_builder::ProgrammableTransactionBuilder;
-use mys_types::quorum_driver_types::ExecuteTransactionRequestType;
-use mys_types::transaction::{
+use myso_sdk::MySoClientBuilder;
+use myso_types::base_types::{ObjectID, ObjectRef, MySoAddress};
+use myso_types::coin::{PAY_MODULE_NAME, PAY_SPLIT_N_FUNC_NAME};
+use myso_types::gas_coin::GAS;
+use myso_types::object::Owner;
+use myso_types::programmable_transaction_builder::ProgrammableTransactionBuilder;
+use myso_types::transaction_driver_types::ExecuteTransactionRequestType;
+use myso_types::transaction::{
     Argument, ObjectArg, ProgrammableTransaction, Transaction, TransactionKind,
 };
-use mys_types::MYS_FRAMEWORK_PACKAGE_ID;
+use myso_types::MYSO_FRAMEWORK_PACKAGE_ID;
 use tap::TapFallible;
 use tracing::{debug, info};
 
 #[derive(Clone)]
 pub struct MysClient {
-    mys_client: mys_sdk::MysClient,
+    mys_client: myso_sdk::MySoClient,
 }
 
 impl MysClient {
     pub async fn new(fullnode_url: &str, basic_auth: Option<(String, String)>) -> Self {
-        let mut mys_client_builder = MysClientBuilder::default().max_concurrent_requests(100000);
+        let mut mys_client_builder = MySoClientBuilder::default().max_concurrent_requests(100000);
         if let Some((username, password)) = basic_auth {
             mys_client_builder = mys_client_builder.basic_auth(username, password);
         }
@@ -54,7 +54,7 @@ impl MysClient {
 
     pub async fn get_all_owned_mys_coins_above_balance_threshold(
         &self,
-        address: MysAddress,
+        address: MySoAddress,
         balance_threshold: u64,
     ) -> Vec<GasCoin> {
         info!(
@@ -119,7 +119,7 @@ impl MysClient {
                             .read_api()
                             .multi_get_object_with_options(
                                 chunk.clone(),
-                                MysObjectDataOptions::default().with_bcs(),
+                                MySoObjectDataOptions::default().with_bcs(),
                             )
                             .await
                             .map_err(anyhow::Error::from)?;
@@ -163,7 +163,7 @@ impl MysClient {
         let mut pt_builder = ProgrammableTransactionBuilder::new();
         let pure_arg = pt_builder.pure(split_count).unwrap();
         pt_builder.programmable_move_call(
-            MYS_FRAMEWORK_PACKAGE_ID,
+            MYSO_FRAMEWORK_PACKAGE_ID,
             PAY_MODULE_NAME.into(),
             PAY_SPLIT_N_FUNC_NAME.into(),
             vec![GAS::type_tag()],
@@ -174,7 +174,7 @@ impl MysClient {
 
     pub async fn calibrate_gas_cost_per_object(
         &self,
-        sponsor_address: MysAddress,
+        sponsor_address: MySoAddress,
         gas_coin: &GasCoin,
     ) -> u64 {
         const SPLIT_COUNT: u64 = 500;
@@ -184,7 +184,7 @@ impl MysClient {
             .unwrap();
         let pure_arg = pt_builder.pure(SPLIT_COUNT).unwrap();
         pt_builder.programmable_move_call(
-            MYS_FRAMEWORK_PACKAGE_ID,
+            MYSO_FRAMEWORK_PACKAGE_ID,
             PAY_MODULE_NAME.into(),
             PAY_SPLIT_N_FUNC_NAME.into(),
             vec![GAS::type_tag()],
@@ -213,7 +213,7 @@ impl MysClient {
         &self,
         tx: Transaction,
         max_attempts: usize,
-    ) -> anyhow::Result<MysTransactionBlockEffects> {
+    ) -> anyhow::Result<MySoTransactionBlockEffects> {
         let digest = *tx.digest();
         debug!(?digest, "Executing transaction: {:?}", tx);
         let response = retry_with_max_attempts!(
@@ -222,7 +222,7 @@ impl MysClient {
                     .quorum_driver_api()
                     .execute_transaction_block(
                         tx.clone(),
-                        MysTransactionBlockResponseOptions::new().with_effects(),
+                        MySoTransactionBlockResponseOptions::new().with_effects(),
                         Some(ExecuteTransactionRequestType::WaitForEffectsCert),
                     )
                     .await
@@ -242,9 +242,9 @@ impl MysClient {
             let response = self
                 .mys_client
                 .read_api()
-                .get_object_with_options(obj_ref.0, MysObjectDataOptions::default())
+                .get_object_with_options(obj_ref.0, MySoObjectDataOptions::default())
                 .await;
-            if let Ok(MysObjectResponse {
+            if let Ok(MySoObjectResponse {
                 data: Some(data), ..
             }) = response
             {
@@ -256,14 +256,14 @@ impl MysClient {
         }
     }
 
-    fn try_get_mys_coin_balance(object: &MysObjectResponse) -> Option<GasCoin> {
+    fn try_get_mys_coin_balance(object: &MySoObjectResponse) -> Option<GasCoin> {
         let data = object.data.as_ref()?;
         let object_ref = data.object_ref();
         let move_obj = data.bcs.as_ref()?.try_as_move()?;
-        if move_obj.type_ != mys_types::gas_coin::GasCoin::type_() {
+        if move_obj.type_ != myso_types::gas_coin::GasCoin::type_() {
             return None;
         }
-        let gas_coin: mys_types::gas_coin::GasCoin = bcs::from_bytes(&move_obj.bcs_bytes).ok()?;
+        let gas_coin: myso_types::gas_coin::GasCoin = bcs::from_bytes(&move_obj.bcs_bytes).ok()?;
         Some(GasCoin {
             object_ref,
             balance: gas_coin.value(),
@@ -284,7 +284,7 @@ impl MultiGetObjectOwners for MysClient {
                     .read_api()
                     .multi_get_object_with_options(
                         object_ids.clone(),
-                        MysObjectDataOptions::default().with_owner(),
+                        MySoObjectDataOptions::default().with_owner(),
                     )
                     .await
                     .tap_err(|err| debug!("Failed to get object owners: {:?}", err))?;
@@ -309,8 +309,8 @@ impl MultiGetObjectOwners for MysClient {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mys_types::crypto::get_account_key_pair;
-    use mys_types::object::Object;
+    use myso_types::crypto::get_account_key_pair;
+    use myso_types::object::Object;
     use test_cluster::{TestCluster, TestClusterBuilder};
 
     async fn create_test_cluster(objects: Vec<Object>) -> TestCluster {

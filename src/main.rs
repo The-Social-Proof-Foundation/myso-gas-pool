@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use clap::Parser;
-use mys_gas_station::command::Command;
+use myso_gas_station::command::Command;
 
 #[tokio::main]
 async fn main() {

@@ -14,7 +14,7 @@ use std::ops::Add;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
-use mys_types::base_types::{ObjectDigest, ObjectID, SequenceNumber, MysAddress};
+use myso_types::base_types::{ObjectDigest, ObjectID, SequenceNumber, MySoAddress};
 use tracing::{debug, info};
 
 pub struct RedisStorage {
@@ -27,7 +27,7 @@ pub struct RedisStorage {
 impl RedisStorage {
     pub async fn new(
         redis_url: &str,
-        sponsor_address: MysAddress,
+        sponsor_address: MySoAddress,
         metrics: Arc<StorageMetrics>,
     ) -> Self {
         let client = redis::Client::open(redis_url).unwrap();
@@ -241,7 +241,7 @@ impl Storage for RedisStorage {
 
     async fn check_health(&self) -> anyhow::Result<()> {
         let mut conn = self.conn_manager.clone();
-        redis::cmd("PING").query_async(&mut conn).await?;
+        redis::cmd("PING").query_async::<_, ()>(&mut conn).await?;
         Ok(())
     }
 
@@ -284,7 +284,7 @@ impl Storage for RedisStorage {
 
 #[cfg(test)]
 mod tests {
-    use mys_types::base_types::{random_object_ref, MysAddress};
+    use myso_types::base_types::{random_object_ref, MySoAddress};
 
     use crate::{
         metrics::StorageMetrics,
@@ -355,7 +355,7 @@ mod tests {
     async fn setup_storage() -> RedisStorage {
         let storage = RedisStorage::new(
             "redis://127.0.0.1:6379",
-            MysAddress::ZERO,
+            MySoAddress::ZERO,
             StorageMetrics::new_for_testing(),
         )
         .await;

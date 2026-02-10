@@ -20,10 +20,10 @@ use fastcrypto::encoding::Base64;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 use std::time::Duration;
-use mys_json_rpc_types::MysTransactionBlockEffectsAPI;
-use mys_types::crypto::ToFromBytes;
-use mys_types::signature::GenericSignature;
-use mys_types::transaction::TransactionData;
+use myso_json_rpc_types::MySoTransactionBlockEffectsAPI;
+use myso_types::crypto::ToFromBytes;
+use myso_types::signature::GenericSignature;
+use myso_types::transaction::TransactionData;
 use tokio::task::JoinHandle;
 use tracing::{debug, error, info};
 

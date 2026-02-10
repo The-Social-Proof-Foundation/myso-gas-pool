@@ -9,6 +9,6 @@ gas-pool-config:
     redis_url: "${REDIS_URL}"
 fullnode-url: "${FULLNODE_URL}"
 coin-init-config:
-  target-init-balance: 100000000  # 0.1 MYS in MIST
+  target-init-balance: 100000000  # 0.1 MYSO in MIST
   refresh-interval-sec: 86400     # 24 hours
-daily-gas-usage-cap: 15000000000000  # 15000 MYS in MIST 
+daily-gas-usage-cap: 15000000000000  # 15000 MYSO in MIST 

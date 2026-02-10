@@ -7,17 +7,17 @@ use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use std::net::Ipv4Addr;
 use std::sync::Arc;
-use mys_config::Config;
-use mys_types::crypto::{get_account_key_pair, MysKeyPair};
-use mys_types::gas_coin::MIST_PER_MYS;
+use myso_config::Config;
+use myso_types::crypto::{get_account_key_pair, MySoKeyPair};
+use myso_types::gas_coin::MIST_PER_MYSO;
 
 pub const DEFAULT_RPC_PORT: u16 = 9527;
 pub const DEFAULT_METRICS_PORT: u16 = 9184;
-// 0.1 MYS.
-pub const DEFAULT_INIT_COIN_BALANCE: u64 = MIST_PER_MYS / 10;
+// 0.1 MYSO.
+pub const DEFAULT_INIT_COIN_BALANCE: u64 = MIST_PER_MYSO / 10;
 // 24 hours.
 const DEFAULT_COIN_POOL_REFRESH_INTERVAL_SEC: u64 = 60 * 60 * 24;
-pub const DEFAULT_DAILY_GAS_USAGE_CAP: u64 = 1500 * MIST_PER_MYS;
+pub const DEFAULT_DAILY_GAS_USAGE_CAP: u64 = 1500 * MIST_PER_MYSO;
 
 // Use 127.0.0.1 for tests to avoid OS complaining about permissions.
 #[cfg(test)]
@@ -81,7 +81,7 @@ impl Default for GasPoolStorageConfig {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum TxSignerConfig {
-    Local { keypair: MysKeyPair },
+    Local { keypair: MySoKeyPair },
     Sidecar { sidecar_url: String },
 }
 

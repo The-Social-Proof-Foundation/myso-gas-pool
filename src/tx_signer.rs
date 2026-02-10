@@ -10,17 +10,17 @@ use serde_json::{self, json};
 use shared_crypto::intent::{Intent, IntentMessage};
 use std::str::FromStr;
 use std::sync::Arc;
-use mys_types::base_types::MysAddress;
-use mys_types::crypto::{Signature, MysKeyPair};
-use mys_types::signature::GenericSignature;
-use mys_types::transaction::TransactionData;
+use myso_types::base_types::MySoAddress;
+use myso_types::crypto::{Signature, MySoKeyPair};
+use myso_types::signature::GenericSignature;
+use myso_types::transaction::TransactionData;
 
 #[async_trait::async_trait]
 pub trait TxSigner: Send + Sync {
     async fn sign_transaction(&self, tx_data: &TransactionData)
         -> anyhow::Result<GenericSignature>;
-    fn get_address(&self) -> MysAddress;
-    fn is_valid_address(&self, address: &MysAddress) -> bool {
+    fn get_address(&self) -> MySoAddress;
+    fn is_valid_address(&self, address: &MySoAddress) -> bool {
         self.get_address() == *address
     }
 }
@@ -39,15 +39,15 @@ struct ErrorResponse {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct MysAddressResponse {
+struct MySoAddressResponse {
     #[serde(rename = "mysPubkeyAddress")]
-    mys_pubkey_address: MysAddress,
+    mys_pubkey_address: MySoAddress,
 }
 
 pub struct SidecarTxSigner {
     sidecar_url: String,
     client: Client,
-    mys_address: MysAddress,
+    mys_address: MySoAddress,
 }
 
 impl SidecarTxSigner {
@@ -76,7 +76,7 @@ impl SidecarTxSigner {
             .unwrap_or_else(|err| panic!("Failed to read response body from {}: {}", url, err));
         println!("KMS sidecar response: {}", response_text);
         
-        let mys_address: MysAddressResponse = serde_json::from_str(&response_text)
+        let mys_address: MySoAddressResponse = serde_json::from_str(&response_text)
             .unwrap_or_else(|err| panic!("Failed to parse address response from {}: {}. Response was: {}", url, err, response_text));
             
         Arc::new(Self {
@@ -127,17 +127,17 @@ impl TxSigner for SidecarTxSigner {
         Ok(sig)
     }
 
-    fn get_address(&self) -> MysAddress {
+    fn get_address(&self) -> MySoAddress {
         self.mys_address
     }
 }
 
 pub struct TestTxSigner {
-    keypair: MysKeyPair,
+    keypair: MySoKeyPair,
 }
 
 impl TestTxSigner {
-    pub fn new(keypair: MysKeyPair) -> Arc<Self> {
+    pub fn new(keypair: MySoKeyPair) -> Arc<Self> {
         Arc::new(Self { keypair })
     }
 }
@@ -148,12 +148,12 @@ impl TxSigner for TestTxSigner {
         &self,
         tx_data: &TransactionData,
     ) -> anyhow::Result<GenericSignature> {
-        let intent_msg = IntentMessage::new(Intent::mys_transaction(), tx_data);
+        let intent_msg = IntentMessage::new(Intent::myso_transaction(), tx_data);
         let sponsor_sig = Signature::new_secure(&intent_msg, &self.keypair).into();
         Ok(sponsor_sig)
     }
 
-    fn get_address(&self) -> MysAddress {
+    fn get_address(&self) -> MySoAddress {
         (&self.keypair.public()).into()
     }
 }

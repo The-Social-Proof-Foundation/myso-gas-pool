@@ -12,13 +12,13 @@ use crate::mys_client::MysClient;
 use crate::tx_signer::{TestTxSigner, TxSigner};
 use crate::AUTH_ENV_NAME;
 use std::sync::Arc;
-use mys_config::local_ip_utils::{get_available_port, localhost_for_testing};
-use mys_swarm_config::genesis_config::AccountConfig;
-use mys_types::base_types::{ObjectRef, MysAddress};
-use mys_types::crypto::get_account_key_pair;
-use mys_types::gas_coin::MIST_PER_MYS;
-use mys_types::signature::GenericSignature;
-use mys_types::transaction::{TransactionData, TransactionDataAPI};
+use myso_config::local_ip_utils::{get_available_port, localhost_for_testing};
+use myso_swarm_config::genesis_config::AccountConfig;
+use myso_types::base_types::{ObjectRef, MySoAddress};
+use myso_types::crypto::get_account_key_pair;
+use myso_types::gas_coin::MIST_PER_MYSO;
+use myso_types::signature::GenericSignature;
+use myso_types::transaction::{TransactionData, TransactionDataAPI};
 use test_cluster::{TestCluster, TestClusterBuilder};
 use tracing::debug;
 
@@ -30,10 +30,10 @@ pub async fn start_mys_cluster(init_gas_amounts: Vec<u64>) -> (TestCluster, Arc<
                 address: Some(sponsor),
                 gas_amounts: init_gas_amounts,
             },
-            // Besides sponsor, also initialize another account with 1000 MYS.
+            // Besides sponsor, also initialize another account with 1000 MYSO.
             AccountConfig {
                 address: None,
-                gas_amounts: vec![1000 * MIST_PER_MYS],
+                gas_amounts: vec![1000 * MIST_PER_MYSO],
             },
         ])
         .build()
@@ -92,7 +92,7 @@ pub async fn start_rpc_server_for_testing(
 
 pub async fn create_test_transaction(
     test_cluster: &TestCluster,
-    sponsor: MysAddress,
+    sponsor: MySoAddress,
     gas_coins: Vec<ObjectRef>,
 ) -> (TransactionData, GenericSignature) {
     let user = test_cluster

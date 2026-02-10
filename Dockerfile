@@ -1,5 +1,5 @@
 FROM rust:1.85-bullseye AS chef
-WORKDIR /mys
+WORKDIR /myso
 ARG GIT_REVISION
 ENV GIT_REVISION=$GIT_REVISION
 RUN apt-get update && apt-get install -y cmake clang curl gettext-base
@@ -15,7 +15,7 @@ RUN cargo build --release
 # Production Image
 FROM debian:bullseye-slim AS runtime
 RUN apt-get update && apt-get install -y libjemalloc-dev ca-certificates curl gettext-base redis-tools
-COPY --from=builder /target/release/mys-gas-station /usr/local/bin/mys-gas-station
+COPY --from=builder /target/release/myso-gas-station /usr/local/bin/myso-gas-station
 
 # Create config directory
 RUN mkdir -p /etc/gas-station
@@ -30,8 +30,8 @@ set -e\n\
 export PORT=${PORT:-9527}\n\
 echo "Substituting environment variables in config..."\n\
 envsubst < /etc/gas-station/config-template.yaml > /etc/gas-station/config.yaml\n\
-echo "Starting mys-gas-station..."\n\
-exec mys-gas-station --config-path /etc/gas-station/config.yaml' > /usr/local/bin/start.sh
+echo "Starting myso-gas-station..."\n\
+exec myso-gas-station --config-path /etc/gas-station/config.yaml' > /usr/local/bin/start.sh
 
 RUN chmod +x /usr/local/bin/start.sh
 

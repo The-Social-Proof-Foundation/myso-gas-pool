@@ -1,31 +1,31 @@
 [package]
-name = "mys-gas-station"
-version = "0.4.0"
+name = "myso-gas-station"
+version = "0.0.1"
 edition = "2021"
 authors = ["The Social Proof Foundation <brandon@socialproof.foundation.com>"]
 license = "Apache-2.0"
-repository = "https://github.com/The-Social-Proof-Foundation/mys-core-gas-station"
+repository = "https://github.com/the-social-proof-foundation/myso-core-gas-station"
 
 [dependencies]
-#mys-config = { path = "../mys-upstream/crates/mys-config" }
-#mys-json-rpc-types = { path = "../mys-upstream/crates/mys-json-rpc-types" }
-#mys-sdk = { path = "../mys-upstream/crates/mys-sdk" }
-#mys-swarm-config = { path = "../mys-upstream/crates/mys-swarm-config" }
-#mys-types = { path = "../mys-upstream/crates/mys-types" }
-#shared-crypto = { path = "../mys-upstream/crates/shared-crypto" }
-#telemetry-subscribers = { path = "../mys-upstream/crates/telemetry-subscribers" }
-#test-cluster = { path = "../mys-upstream/crates/test-cluster" }
-#typed-store = { path = "../mys-upstream/crates/typed-store" }
-#typed-store-derive = { path = "../mys-upstream/crates/typed-store-derive" }
+#myso-config = { path = "../myso-upstream/crates/myso-config" }
+#myso-json-rpc-types = { path = "../myso-upstream/crates/myso-json-rpc-types" }
+#myso-sdk = { path = "../myso-upstream/crates/myso-sdk" }
+#myso-swarm-config = { path = "../myso-upstream/crates/myso-swarm-config" }
+#myso-types = { path = "../myso-upstream/crates/myso-types" }
+#shared-crypto = { path = "../myso-upstream/crates/shared-crypto" }
+#telemetry-subscribers = { path = "../myso-upstream/crates/telemetry-subscribers" }
+#test-cluster = { path = "../myso-upstream/crates/test-cluster" }
+#typed-store = { path = "../myso-upstream/crates/typed-store" }
+#typed-store-derive = { path = "../myso-upstream/crates/typed-store-derive" }
 
 fastcrypto = { git = "https://github.com/MystenLabs/fastcrypto", branch = "main" }
-mysten-metrics = { git = "https://github.com/The-Social-Proof-Foundation/mys-core", branch = "custom-profile-contract-add", package = "mysten-metrics" }
-mys-config = { git = "https://github.com/The-Social-Proof-Foundation/mys-core", branch = "custom-profile-contract-add", package = "mys-config" }
-mys-json-rpc-types = { git = "https://github.com/The-Social-Proof-Foundation/mys-core", branch = "custom-profile-contract-add", package = "mys-json-rpc-types" }
-mys-sdk = { git = "https://github.com/The-Social-Proof-Foundation/mys-core", branch = "custom-profile-contract-add", package = "mys-sdk" }
-mys-types = { git = "https://github.com/The-Social-Proof-Foundation/mys-core", branch = "custom-profile-contract-add", package = "mys-types" }
-shared-crypto = { git = "https://github.com/The-Social-Proof-Foundation/mys-core", branch = "custom-profile-contract-add", package = "shared-crypto" }
-telemetry-subscribers = { git = "https://github.com/The-Social-Proof-Foundation/mys-core", branch = "custom-profile-contract-add", package = "telemetry-subscribers" }
+mysten-metrics = { git = "https://github.com/the-social-proof-foundation/myso-core", branch = "main", package = "mysten-metrics" }
+myso-config = { git = "https://github.com/the-social-proof-foundation/myso-core", branch = "main", package = "myso-config" }
+myso-json-rpc-types = { git = "https://github.com/the-social-proof-foundation/myso-core", branch = "main", package = "myso-json-rpc-types" }
+myso-sdk = { git = "https://github.com/the-social-proof-foundation/myso-core", branch = "main", package = "myso-sdk" }
+myso-types = { git = "https://github.com/the-social-proof-foundation/myso-core", branch = "main", package = "myso-types" }
+shared-crypto = { git = "https://github.com/the-social-proof-foundation/myso-core", branch = "main", package = "shared-crypto" }
+telemetry-subscribers = { git = "https://github.com/the-social-proof-foundation/myso-core", branch = "main", package = "telemetry-subscribers" }
 
 anyhow = "1.0.75"
 async-trait = "0.1.51"
@@ -35,7 +35,7 @@ http-body = "1.0"
 tower-http = "0.5"
 bcs = "0.1.6"
 clap = "4.4.10"
-chrono = "=0.4.38"
+chrono = "0.4.39"
 const-str = "0.5.6"
 eyre = "0.6.9"
 futures-util = "0.3.30"
@@ -58,15 +58,15 @@ schemars = "0.8.16"
 tap = "1.0.1"
 tempfile = "3.2.0"
 tracing = "0.1.40"
-tokio = { version = "1.43", features = ["full"] }
+tokio = { version = "1.49", features = ["full"] }
 tokio-retry = "0.3.0"
 serde_json = "1.0.108"
 
 [dev-dependencies]
 rand = "0.8.5"
 
-mys-swarm-config = { git = "https://github.com/The-Social-Proof-Foundation/mys-core", branch = "custom-profile-contract-add", package = "mys-swarm-config" }
-test-cluster = { git = "https://github.com/The-Social-Proof-Foundation/mys-core", branch = "custom-profile-contract-add", package = "test-cluster" }
+myso-swarm-config = { git = "https://github.com/the-social-proof-foundation/myso-core", branch = "main", package = "myso-swarm-config" }
+test-cluster = { git = "https://github.com/the-social-proof-foundation/myso-core", branch = "main", package = "test-cluster" }
 
 # Using custom-profile-contract-add branch which fixes axum-server compatibility issues
 

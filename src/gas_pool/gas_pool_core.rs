@@ -12,12 +12,12 @@ use crate::{retry_forever, retry_with_max_attempts};
 use anyhow::bail;
 use std::sync::Arc;
 use std::time::Duration;
-use mys_json_rpc_types::{MysTransactionBlockEffects, MysTransactionBlockEffectsAPI};
-use mys_types::base_types::{ObjectID, ObjectRef, MysAddress};
-use mys_types::gas_coin::MIST_PER_MYS;
-use mys_types::programmable_transaction_builder::ProgrammableTransactionBuilder;
-use mys_types::signature::GenericSignature;
-use mys_types::transaction::{
+use myso_json_rpc_types::{MySoTransactionBlockEffects, MySoTransactionBlockEffectsAPI};
+use myso_types::base_types::{ObjectID, ObjectRef, MySoAddress};
+use myso_types::gas_coin::MIST_PER_MYSO;
+use myso_types::programmable_transaction_builder::ProgrammableTransactionBuilder;
+use myso_types::signature::GenericSignature;
+use myso_types::transaction::{
     Argument, Command, Transaction, TransactionData, TransactionDataAPI, TransactionKind,
 };
 use tap::TapFallible;
@@ -68,7 +68,7 @@ impl GasPool {
         &self,
         gas_budget: u64,
         duration: Duration,
-    ) -> anyhow::Result<(MysAddress, ReservationID, Vec<ObjectRef>)> {
+    ) -> anyhow::Result<(MySoAddress, ReservationID, Vec<ObjectRef>)> {
         let cur_time = std::time::Instant::now();
         self.gas_usage_cap.check_usage().await?;
         let sponsor = self.signer.get_address();
@@ -93,7 +93,7 @@ impl GasPool {
         reservation_id: ReservationID,
         tx_data: TransactionData,
         user_sig: GenericSignature,
-    ) -> anyhow::Result<MysTransactionBlockEffects> {
+    ) -> anyhow::Result<MySoTransactionBlockEffects> {
         let sponsor = tx_data.gas_data().owner;
         if !self.signer.is_valid_address(&sponsor) {
             bail!("Sponsor {:?} is not registered", sponsor);
@@ -187,7 +187,7 @@ impl GasPool {
         reservation_id: ReservationID,
         tx_data: TransactionData,
         user_sig: GenericSignature,
-    ) -> anyhow::Result<MysTransactionBlockEffects> {
+    ) -> anyhow::Result<MySoTransactionBlockEffects> {
         let _object_locks = self
             .object_lock_manager
             .try_acquire_locks(reservation_id, &tx_data)
@@ -293,7 +293,7 @@ impl GasPool {
 
     /// Performs an end-to-end flow of reserving gas, signing a transaction, and releasing the gas coins.
     pub async fn debug_check_health(&self) -> anyhow::Result<()> {
-        let gas_budget = MIST_PER_MYS / 10;
+        let gas_budget = MIST_PER_MYSO / 10;
         let (_address, _reservation_id, gas_coins) =
             self.reserve_gas(gas_budget, Duration::from_secs(3)).await?;
         let tx_kind = TransactionKind::ProgrammableTransaction(
@@ -302,7 +302,7 @@ impl GasPool {
         // Since we just want to check the health of the signer, we don't need to actually execute the transaction.
         let tx_data = TransactionData::new_with_gas_coins(
             tx_kind,
-            MysAddress::default(),
+            MySoAddress::default(),
             gas_coins,
             gas_budget,
             0,

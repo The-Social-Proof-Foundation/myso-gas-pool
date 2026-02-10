@@ -4,16 +4,16 @@
 
 use clap::*;
 use std::path::PathBuf;
-use mys_config::Config;
-use mys_gas_station::benchmarks::kms_stress::run_kms_stress_test;
-use mys_gas_station::benchmarks::BenchmarkMode;
-use mys_gas_station::config::{GasPoolStorageConfig, GasStationConfig, TxSignerConfig};
-use mys_gas_station::rpc::client::GasPoolRpcClient;
-use mys_types::crypto::get_account_key_pair;
+use myso_config::Config;
+use myso_gas_station::benchmarks::kms_stress::run_kms_stress_test;
+use myso_gas_station::benchmarks::BenchmarkMode;
+use myso_gas_station::config::{GasPoolStorageConfig, GasStationConfig, TxSignerConfig};
+use myso_gas_station::rpc::client::GasPoolRpcClient;
+use myso_types::crypto::get_account_key_pair;
 
 #[derive(Parser)]
 #[command(
-    name = "mys-gas-pool-tool",
+    name = "myso-gas-pool-tool",
     about = "MySocial Gas Pool Command Line Tools",
     rename_all = "kebab-case"
 )]
