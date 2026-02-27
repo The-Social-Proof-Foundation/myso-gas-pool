@@ -80,9 +80,9 @@ pub struct ReserveGasResponse {
 }
 
 pub struct ReserveGasResult {
-    pub sponsor_address: MysAddress,
+    pub sponsor_address: MySoAddress,
     pub reservation_id: ReservationID,
-    pub gas_coins: Vec<MysObjectRef>,
+    pub gas_coins: Vec<MySoObjectRef>,
 }
 
 pub struct ExecuteTxRequest {
@@ -95,7 +95,7 @@ pub struct ExecuteTxRequest {
 }
 
 pub struct ExecuteTxResponse {
-    pub effects: Option<MysTransactionBlockEffects>,
+    pub effects: Option<MySoTransactionBlockEffects>,
     pub error: Option<String>,
 }
 
@@ -123,9 +123,9 @@ implementations:
 1. KMS Sidecar: This allows us to manage private keys in a secure key management service such as AWS KMS. You will need
    to run a KMS sidecar that accepts signing requests through a JSON-RPC endpoint, that talks to AWS and signs
    transactions. We provided a [sample implementation](sample_kms_sidecar/) of such sidecar in the repo.
-2. In-memory: This allows the gas pool server to load a [`MysKeyPair`](https://github.com/MystenLabs/myso/blob/2873d7a2532343247d545d52bcd9d7ab138096bb/crates/myso-types/src/crypto.rs#L136) directly from file and use it to sign transactions. The config file expects a Base 64 encoded form of `MysKeyPair`. You can obtain it using one the following ways:
+2. In-memory: This allows the gas pool server to load a [`MySoKeyPair`](https://github.com/MystenLabs/myso/blob/2873d7a2532343247d545d52bcd9d7ab138096bb/crates/myso-types/src/crypto.rs#L136) directly from file and use it to sign transactions. The config file expects a Base 64 encoded form of `MySoKeyPair`. You can obtain it using one the following ways:
    - Using the `myso` binary to generate a new keypair by running `myso keytool generate ed25519`, and find the serialized keypair in the `<address>.key` file.
-   - If you have already imported your key to your local MySo client config, you can also find the keypair in `~/.mys/mys_config/myso.keystore`.
+   - If you have already imported your key to your local MySo client config, you can also find the keypair in `~/.myso/myso_config/myso.keystore`.
    - More details of MySo key formats can be found in the [official document](https://docs.mysocial.network/references/cli/keytool).
 
 ## Binaries

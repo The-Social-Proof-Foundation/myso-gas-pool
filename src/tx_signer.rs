@@ -41,13 +41,13 @@ struct ErrorResponse {
 #[serde(rename_all = "camelCase")]
 struct MySoAddressResponse {
     #[serde(rename = "mysPubkeyAddress")]
-    mys_pubkey_address: MySoAddress,
+    myso_pubkey_address: MySoAddress,
 }
 
 pub struct SidecarTxSigner {
     sidecar_url: String,
     client: Client,
-    mys_address: MySoAddress,
+    myso_address: MySoAddress,
 }
 
 impl SidecarTxSigner {
@@ -76,13 +76,13 @@ impl SidecarTxSigner {
             .unwrap_or_else(|err| panic!("Failed to read response body from {}: {}", url, err));
         println!("KMS sidecar response: {}", response_text);
         
-        let mys_address: MySoAddressResponse = serde_json::from_str(&response_text)
+        let myso_address: MySoAddressResponse = serde_json::from_str(&response_text)
             .unwrap_or_else(|err| panic!("Failed to parse address response from {}: {}. Response was: {}", url, err, response_text));
             
         Arc::new(Self {
             sidecar_url,
             client,
-            mys_address: mys_address.mys_pubkey_address,
+            myso_address: myso_address.myso_pubkey_address,
         })
     }
 }
@@ -128,7 +128,7 @@ impl TxSigner for SidecarTxSigner {
     }
 
     fn get_address(&self) -> MySoAddress {
-        self.mys_address
+        self.myso_address
     }
 }
 

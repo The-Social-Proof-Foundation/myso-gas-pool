@@ -1,6 +1,6 @@
 import { KeyManagementServiceClient } from '@google-cloud/kms';
 import { Secp256r1PublicKey } from '@socialproof/myso/keypairs/secp256r1';
-import { fromB64, toB64 } from '@socialproof/myso/utils';
+import { fromBase64, toBase64 } from '@socialproof/myso/utils';
 import {
     toSerializedSignature,
     SIGNATURE_FLAG_TO_SCHEME,
@@ -8,7 +8,7 @@ import {
     SignatureFlag,
     messageWithIntent,
 } from '@socialproof/myso/cryptography';
-import { blake2b } from '@noble/hashes/blake2b';
+import { blake2b } from '@noble/hashes/blake2.js';
 
 // Compress uncompressed public key from raw bytes
 function compressPublicKey(uncompressedKey: Uint8Array): Uint8Array {
@@ -244,7 +244,7 @@ async function getSerializedSignature(
     fullSignature.set(signature, 1);
     fullSignature.set(pubkeyBytes, 1 + signature.length);
 
-    return toB64(fullSignature);
+    return toBase64(fullSignature);
 }
 
 export async function signAndVerify(txBytes: Uint8Array, keyPath: string): Promise<string | undefined> {

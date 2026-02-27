@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
-import { fromB64 } from '@socialproof/myso/utils';
-import { getPublicKey, signAndVerify } from './gcpKmsUtils';
+import { fromBase64 } from '@socialproof/myso/utils';
+import { getPublicKey, signAndVerify } from './gcpKmsUtils.js';
 
 async function main() {
     const app = express();
@@ -43,7 +43,7 @@ async function main() {
                 });
             }
 
-            const mysPubkeyAddress = publicKey.toMysAddress();
+            const mysPubkeyAddress = publicKey.toMySoAddress();
             res.json({ mysPubkeyAddress });
         } catch (error) {
             console.error('Error in get-pubkey-address endpoint:', error instanceof Error ? error.message : error);
@@ -62,7 +62,7 @@ async function main() {
                 return res.status(400).json({ error: 'Missing transaction bytes' });
             }
 
-            const txBytesArray = fromB64(txBytes);
+            const txBytesArray = fromBase64(txBytes);
             const signature = await signAndVerify(txBytesArray, keyPath);
 
             if (!signature) {

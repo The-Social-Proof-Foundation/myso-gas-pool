@@ -30,17 +30,17 @@ use tap::TapFallible;
 use tracing::{debug, info};
 
 #[derive(Clone)]
-pub struct MysClient {
-    mys_client: myso_sdk::MySoClient,
+pub struct MySoClient {
+    myso_client: myso_sdk::MySoClient,
 }
 
-impl MysClient {
+impl MySoClient {
     pub async fn new(fullnode_url: &str, basic_auth: Option<(String, String)>) -> Self {
-        let mut mys_client_builder = MySoClientBuilder::default().max_concurrent_requests(100000);
+        let mut myso_client_builder = MySoClientBuilder::default().max_concurrent_requests(100000);
         if let Some((username, password)) = basic_auth {
-            mys_client_builder = mys_client_builder.basic_auth(username, password);
+            myso_client_builder = myso_client_builder.basic_auth(username, password);
         }
-        let mys_client = mys_client_builder.build(fullnode_url).await
+        let myso_client = myso_client_builder.build(fullnode_url).await
             .unwrap_or_else(|err| {
                 panic!(
                     "Failed to connect to MySocial fullnode at '{}'. \
@@ -49,10 +49,10 @@ impl MysClient {
                     fullnode_url, err
                 );
             });
-        Self { mys_client }
+        Self { myso_client }
     }
 
-    pub async fn get_all_owned_mys_coins_above_balance_threshold(
+    pub async fn get_all_owned_myso_coins_above_balance_threshold(
         &self,
         address: MySoAddress,
         balance_threshold: u64,
@@ -65,7 +65,7 @@ impl MysClient {
         let mut coins = Vec::new();
         loop {
             let page = retry_forever!(async {
-                self.mys_client
+                self.myso_client
                     .coin_read_api()
                     .get_coins(address, Some(GAS::type_tag().to_string()), cursor.clone(), None)
                     .await
@@ -91,7 +91,7 @@ impl MysClient {
 
     pub async fn get_reference_gas_price(&self) -> u64 {
         retry_forever!(async {
-            self.mys_client
+            self.myso_client
                 .governance_api()
                 .get_reference_gas_price()
                 .await
@@ -110,11 +110,11 @@ impl MysClient {
             .into_iter()
             .map(|chunk| {
                 let chunk: Vec<_> = chunk.collect();
-                let mys_client = self.mys_client.clone();
+                let myso_client = self.myso_client.clone();
                 tokio::spawn(async move {
                     retry_forever!(async {
                         let chunk = chunk.clone();
-                        let result = mys_client
+                        let result = myso_client
                             .clone()
                             .read_api()
                             .multi_get_object_with_options(
@@ -141,7 +141,7 @@ impl MysClient {
         objects
             .into_iter()
             .map(|(id, response)| {
-                let object = match Self::try_get_mys_coin_balance(&response) {
+                let object = match Self::try_get_myso_coin_balance(&response) {
                     Some(coin) => {
                         debug!("Got updated gas coin info: {:?}", coin);
                         Some(coin)
@@ -192,7 +192,7 @@ impl MysClient {
         );
         let pt = pt_builder.finish();
         let response = retry_forever!(async {
-            self.mys_client
+            self.myso_client
                 .read_api()
                 .dev_inspect_transaction_block(
                     sponsor_address,
@@ -218,7 +218,7 @@ impl MysClient {
         debug!(?digest, "Executing transaction: {:?}", tx);
         let response = retry_with_max_attempts!(
             async {
-                self.mys_client
+                self.myso_client
                     .quorum_driver_api()
                     .execute_transaction_block(
                         tx.clone(),
@@ -240,7 +240,7 @@ impl MysClient {
     pub async fn wait_for_object(&self, obj_ref: ObjectRef) {
         loop {
             let response = self
-                .mys_client
+                .myso_client
                 .read_api()
                 .get_object_with_options(obj_ref.0, MySoObjectDataOptions::default())
                 .await;
@@ -256,7 +256,7 @@ impl MysClient {
         }
     }
 
-    fn try_get_mys_coin_balance(object: &MySoObjectResponse) -> Option<GasCoin> {
+    fn try_get_myso_coin_balance(object: &MySoObjectResponse) -> Option<GasCoin> {
         let data = object.data.as_ref()?;
         let object_ref = data.object_ref();
         let move_obj = data.bcs.as_ref()?.try_as_move()?;
@@ -272,7 +272,7 @@ impl MysClient {
 }
 
 #[async_trait::async_trait]
-impl MultiGetObjectOwners for MysClient {
+impl MultiGetObjectOwners for MySoClient {
     async fn multi_get_object_owners(
         &self,
         object_ids: Vec<ObjectID>,
@@ -280,7 +280,7 @@ impl MultiGetObjectOwners for MysClient {
         retry_with_max_attempts!(
             async {
                 let results = self
-                    .mys_client
+                    .myso_client
                     .read_api()
                     .multi_get_object_with_options(
                         object_ids.clone(),
@@ -347,13 +347,13 @@ mod tests {
 
         // Create test cluster with our objects
         let test_cluster = create_test_cluster(objects).await;
-        let mys_client = MysClient::new(&test_cluster.rpc_url(), None).await;
+        let myso_client = MySoClient::new(&test_cluster.rpc_url(), None).await;
 
         // Get object IDs to query
         let object_ids = vec![obj1.id(), obj2.id(), obj3.id(), obj4.id()];
 
         // Query owners
-        let owner_map = mys_client
+        let owner_map = myso_client
             .multi_get_object_owners(object_ids.clone())
             .await
             .unwrap();

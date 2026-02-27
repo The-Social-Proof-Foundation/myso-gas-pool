@@ -32,7 +32,7 @@ pub struct ObjectLockManager {
     /// Tracks the objects that are currently locked due to
     /// active execution of a transaction.
     locked_owned_objects: Arc<RwLock<HashSet<ObjectID>>>,
-    mys_client: Arc<dyn MultiGetObjectOwners>,
+    myso_client: Arc<dyn MultiGetObjectOwners>,
 }
 
 /// A RAII guard that manages object locks for a transaction.
@@ -74,11 +74,11 @@ impl Drop for ObjectLocks {
 }
 
 impl ObjectLockManager {
-    pub fn new(mys_client: Arc<dyn MultiGetObjectOwners>) -> Self {
+    pub fn new(myso_client: Arc<dyn MultiGetObjectOwners>) -> Self {
         Self {
             address_owned_cache: SegmentedCache::new(CACHE_SIZE, 8),
             locked_owned_objects: Arc::new(RwLock::new(HashSet::new())),
-            mys_client,
+            myso_client,
         }
     }
 
@@ -200,7 +200,7 @@ impl ObjectLockManager {
 
         if !objects_to_query.is_empty() {
             let ids = objects_to_query.keys().cloned().collect();
-            let fetched_objects = self.mys_client.multi_get_object_owners(ids).await?;
+            let fetched_objects = self.myso_client.multi_get_object_owners(ids).await?;
 
             for (obj, (owner, fetched_version)) in fetched_objects {
                 let input_version = objects_to_query[&obj];
@@ -267,11 +267,11 @@ mod tests {
     use myso_types::transaction::TransactionKind;
     use myso_types::transaction::{CallArg, ObjectArg};
 
-    struct MockMysClient {
+    struct MockMySoClient {
         objects: Arc<Mutex<HashMap<ObjectID, (Owner, u64)>>>,
     }
 
-    impl MockMysClient {
+    impl MockMySoClient {
         fn new_empty() -> Arc<Self> {
             Arc::new(Self {
                 objects: Arc::new(Mutex::new(HashMap::new())),
@@ -291,7 +291,7 @@ mod tests {
     }
 
     #[async_trait::async_trait]
-    impl MultiGetObjectOwners for MockMysClient {
+    impl MultiGetObjectOwners for MockMySoClient {
         async fn multi_get_object_owners(
             &self,
             object_ids: Vec<ObjectID>,
@@ -343,7 +343,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_empty_lock_acquisition() {
-        let client = MockMysClient::new_empty();
+        let client = MockMySoClient::new_empty();
         let manager = Arc::new(ObjectLockManager::new(client));
         let tx_data = create_test_tx_data(vec![], vec![], vec![]);
 
@@ -365,7 +365,7 @@ mod tests {
             ),
         );
 
-        let client = MockMysClient::new_with_owners(owners);
+        let client = MockMySoClient::new_with_owners(owners);
         let manager = Arc::new(ObjectLockManager::new(client));
         let tx_data = create_test_tx_data(vec![(obj_id, 1)], vec![], vec![]);
 
@@ -403,7 +403,7 @@ mod tests {
             ),
         );
 
-        let client = MockMysClient::new_with_owners(owners);
+        let client = MockMySoClient::new_with_owners(owners);
         let manager = Arc::new(ObjectLockManager::new(client));
         let tx_data = create_test_tx_data(vec![(obj_id, 1)], vec![], vec![]);
 
@@ -430,7 +430,7 @@ mod tests {
             ),
         );
 
-        let client = MockMysClient::new_with_owners(owners);
+        let client = MockMySoClient::new_with_owners(owners);
         let manager = Arc::new(ObjectLockManager::new(client.clone()));
 
         // First transaction with version 1
@@ -484,7 +484,7 @@ mod tests {
             ),
         );
 
-        let client = MockMysClient::new_with_owners(owners);
+        let client = MockMySoClient::new_with_owners(owners);
         let manager = Arc::new(ObjectLockManager::new(client));
 
         // Try to acquire locks with version 2, but the object is only version 1.
@@ -517,7 +517,7 @@ mod tests {
             ),
         );
 
-        let client = MockMysClient::new_with_owners(owners);
+        let client = MockMySoClient::new_with_owners(owners);
         let manager = Arc::new(ObjectLockManager::new(client.clone()));
         let tx_data = create_test_tx_data(vec![(obj_id, 1)], vec![], vec![]);
 
@@ -552,7 +552,7 @@ mod tests {
             ),
         );
 
-        let client = MockMysClient::new_with_owners(owners);
+        let client = MockMySoClient::new_with_owners(owners);
         let manager = Arc::new(ObjectLockManager::new(client.clone()));
         let tx_data = create_test_tx_data(vec![(obj_id, 1)], vec![], vec![]);
 

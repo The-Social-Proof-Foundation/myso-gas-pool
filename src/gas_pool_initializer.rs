@@ -4,7 +4,7 @@
 
 use crate::config::CoinInitConfig;
 use crate::storage::Storage;
-use crate::mys_client::MysClient;
+use crate::myso_client::MySoClient;
 use crate::tx_signer::TxSigner;
 use crate::types::GasCoin;
 use parking_lot::Mutex;
@@ -41,7 +41,7 @@ struct CoinSplitEnv {
     gas_cost_per_object: u64,
     signer: Arc<dyn TxSigner>,
     sponsor_address: MySoAddress,
-    mys_client: MysClient,
+    myso_client: MySoClient,
     task_queue: Arc<Mutex<VecDeque<JoinHandle<Vec<GasCoin>>>>>,
     total_coin_count: Arc<AtomicUsize>,
     rgp: u64,
@@ -125,7 +125,7 @@ impl CoinSplitEnv {
                 "Sending transaction for execution. Tx digest: {:?}",
                 tx.digest()
             );
-            let result = self.mys_client.execute_transaction(tx.clone(), 10).await;
+            let result = self.myso_client.execute_transaction(tx.clone(), 10).await;
             match result {
                 Ok(effects) => {
                     assert!(
@@ -139,7 +139,7 @@ impl CoinSplitEnv {
                 Err(e) => {
                     error!("Failed to execute transaction: {:?}", e);
                     // Try to get the updated coin object, but don't crash if this fails
-                    let latest_objects = self.mys_client.get_latest_gas_objects([coin.object_ref.0]).await;
+                    let latest_objects = self.myso_client.get_latest_gas_objects([coin.object_ref.0]).await;
                     if let Some((_, Some(updated_coin))) = latest_objects.into_iter().next() {
                         coin = updated_coin;
                         continue;
@@ -188,7 +188,7 @@ impl Drop for GasPoolInitializer {
 
 impl GasPoolInitializer {
     pub async fn start(
-        mys_client: MysClient,
+        myso_client: MySoClient,
         storage: Arc<dyn Storage>,
         coin_init_config: CoinInitConfig,
         signer: Arc<dyn TxSigner>,
@@ -211,7 +211,7 @@ impl GasPoolInitializer {
         if should_run_init {
             // If the pool has never been initialized, always run once at the beginning to make sure we have enough coins.
             Self::run_once(
-                mys_client.clone(),
+                myso_client.clone(),
                 &storage,
                 RunMode::Init,
                 coin_init_config.target_init_balance,
@@ -221,7 +221,7 @@ impl GasPoolInitializer {
         }
         let (cancel_sender, cancel_receiver) = tokio::sync::oneshot::channel();
         let _task_handle = tokio::spawn(Self::run(
-            mys_client,
+            myso_client,
             storage,
             coin_init_config,
             signer,
@@ -234,7 +234,7 @@ impl GasPoolInitializer {
     }
 
     async fn run(
-        mys_client: MysClient,
+        myso_client: MySoClient,
         storage: Arc<dyn Storage>,
         coin_init_config: CoinInitConfig,
         signer: Arc<dyn TxSigner>,
@@ -250,7 +250,7 @@ impl GasPoolInitializer {
             }
             info!("Coin init task waking up and looking for new coins to initialize");
             Self::run_once(
-                mys_client.clone(),
+                myso_client.clone(),
                 &storage,
                 RunMode::Refresh,
                 coin_init_config.target_init_balance,
@@ -261,7 +261,7 @@ impl GasPoolInitializer {
     }
 
     async fn run_once(
-        mys_client: MysClient,
+        myso_client: MySoClient,
         storage: &Arc<dyn Storage>,
         mode: RunMode,
         target_init_coin_balance: u64,
@@ -290,8 +290,8 @@ impl GasPoolInitializer {
         } else {
             target_init_coin_balance * NEW_COIN_BALANCE_FACTOR_THRESHOLD
         };
-        let mut all_coins = mys_client
-            .get_all_owned_mys_coins_above_balance_threshold(sponsor_address, balance_threshold)
+        let mut all_coins = myso_client
+            .get_all_owned_myso_coins_above_balance_threshold(sponsor_address, balance_threshold)
             .await;
 
         if all_coins.is_empty() {
@@ -319,8 +319,8 @@ impl GasPoolInitializer {
             all_coins
         };
         let total_coin_count = Arc::new(AtomicUsize::new(coins_to_process.len()));
-        let rgp = mys_client.get_reference_gas_price().await;
-        let gas_cost_per_object = mys_client
+        let rgp = myso_client.get_reference_gas_price().await;
+        let gas_cost_per_object = myso_client
             .calibrate_gas_cost_per_object(sponsor_address, &coins_to_process[0])
             .await;
         info!("Calibrated gas cost per object: {:?}", gas_cost_per_object);
@@ -331,7 +331,7 @@ impl GasPoolInitializer {
                 gas_cost_per_object,
                 signer: signer.clone(),
                 sponsor_address,
-                mys_client,
+                myso_client,
                 task_queue: Default::default(),
                 total_coin_count,
                 rgp,
@@ -397,8 +397,8 @@ mod tests {
     use crate::config::CoinInitConfig;
     use crate::gas_pool_initializer::{GasPoolInitializer, NEW_COIN_BALANCE_FACTOR_THRESHOLD};
     use crate::storage::connect_storage_for_testing;
-    use crate::mys_client::MysClient;
-    use crate::test_env::start_mys_cluster;
+    use crate::myso_client::MySoClient;
+    use crate::test_env::start_myso_cluster;
     use myso_types::gas_coin::MIST_PER_MYSO;
 
     // TODO: Add more accurate tests.
@@ -406,12 +406,12 @@ mod tests {
     #[tokio::test]
     async fn test_basic_init_flow() {
         telemetry_subscribers::init_for_testing();
-        let (cluster, signer) = start_mys_cluster(vec![1000 * MIST_PER_MYSO]).await;
+        let (cluster, signer) = start_myso_cluster(vec![1000 * MIST_PER_MYSO]).await;
         let fullnode_url = cluster.fullnode_handle.rpc_url;
         let storage = connect_storage_for_testing(signer.get_address()).await;
-        let mys_client = MysClient::new(&fullnode_url, None).await;
+        let myso_client = MySoClient::new(&fullnode_url, None).await;
         let _ = GasPoolInitializer::start(
-            mys_client,
+            myso_client,
             storage.clone(),
             CoinInitConfig {
                 target_init_balance: MIST_PER_MYSO,
@@ -426,13 +426,13 @@ mod tests {
     #[tokio::test]
     async fn test_init_non_even_split() {
         telemetry_subscribers::init_for_testing();
-        let (cluster, signer) = start_mys_cluster(vec![10000000 * MIST_PER_MYSO]).await;
+        let (cluster, signer) = start_myso_cluster(vec![10000000 * MIST_PER_MYSO]).await;
         let fullnode_url = cluster.fullnode_handle.rpc_url;
         let storage = connect_storage_for_testing(signer.get_address()).await;
         let target_init_balance = 12345 * MIST_PER_MYSO;
-        let mys_client = MysClient::new(&fullnode_url, None).await;
+        let myso_client = MySoClient::new(&fullnode_url, None).await;
         let _ = GasPoolInitializer::start(
-            mys_client,
+            myso_client,
             storage.clone(),
             CoinInitConfig {
                 target_init_balance,
@@ -447,13 +447,13 @@ mod tests {
     #[tokio::test]
     async fn test_add_new_funds_to_pool() {
         telemetry_subscribers::init_for_testing();
-        let (cluster, signer) = start_mys_cluster(vec![1000 * MIST_PER_MYSO]).await;
+        let (cluster, signer) = start_myso_cluster(vec![1000 * MIST_PER_MYSO]).await;
         let sponsor = signer.get_address();
         let fullnode_url = cluster.fullnode_handle.rpc_url.clone();
         let storage = connect_storage_for_testing(signer.get_address()).await;
-        let mys_client = MysClient::new(&fullnode_url, None).await;
+        let myso_client = MySoClient::new(&fullnode_url, None).await;
         let _init_task = GasPoolInitializer::start(
-            mys_client,
+            myso_client,
             storage.clone(),
             CoinInitConfig {
                 target_init_balance: MIST_PER_MYSO,

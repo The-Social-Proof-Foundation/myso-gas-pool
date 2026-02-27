@@ -8,7 +8,7 @@ use crate::gas_pool_initializer::GasPoolInitializer;
 use crate::metrics::{GasPoolCoreMetrics, GasPoolRpcMetrics};
 use crate::rpc::GasPoolServer;
 use crate::storage::connect_storage_for_testing;
-use crate::mys_client::MysClient;
+use crate::myso_client::MySoClient;
 use crate::tx_signer::{TestTxSigner, TxSigner};
 use crate::AUTH_ENV_NAME;
 use std::sync::Arc;
@@ -22,7 +22,7 @@ use myso_types::transaction::{TransactionData, TransactionDataAPI};
 use test_cluster::{TestCluster, TestClusterBuilder};
 use tracing::debug;
 
-pub async fn start_mys_cluster(init_gas_amounts: Vec<u64>) -> (TestCluster, Arc<dyn TxSigner>) {
+pub async fn start_myso_cluster(init_gas_amounts: Vec<u64>) -> (TestCluster, Arc<dyn TxSigner>) {
     let (sponsor, keypair) = get_account_key_pair();
     let cluster = TestClusterBuilder::new()
         .with_accounts(vec![
@@ -46,14 +46,14 @@ pub async fn start_gas_station(
     target_init_coin_balance: u64,
 ) -> (TestCluster, GasPoolContainer) {
     debug!("Starting MySo cluster..");
-    let (test_cluster, signer) = start_mys_cluster(init_gas_amounts).await;
+    let (test_cluster, signer) = start_myso_cluster(init_gas_amounts).await;
     let fullnode_url = test_cluster.fullnode_handle.rpc_url.clone();
     let sponsor_address = signer.get_address();
     debug!("Starting storage. Sponsor address: {:?}", sponsor_address);
     let storage = connect_storage_for_testing(sponsor_address).await;
-    let mys_client = MysClient::new(&fullnode_url, None).await;
+    let myso_client = MySoClient::new(&fullnode_url, None).await;
     GasPoolInitializer::start(
-        mys_client.clone(),
+        myso_client.clone(),
         storage.clone(),
         CoinInitConfig {
             target_init_balance: target_init_coin_balance,
@@ -65,7 +65,7 @@ pub async fn start_gas_station(
     let station = GasPoolContainer::new(
         signer,
         storage,
-        mys_client,
+        myso_client,
         DEFAULT_DAILY_GAS_USAGE_CAP,
         GasPoolCoreMetrics::new_for_testing(),
     )

@@ -16,12 +16,12 @@ pub struct GasCoin {
 }
 
 #[derive(Debug, JsonSchema, Serialize, Deserialize)]
-pub struct MysGasCoin {
+pub struct MySoGasCoin {
     pub object_ref: MySoObjectRef,
     pub balance: u64,
 }
 
-impl From<GasCoin> for MysGasCoin {
+impl From<GasCoin> for MySoGasCoin {
     fn from(gas_coin: GasCoin) -> Self {
         Self {
             object_ref: gas_coin.object_ref.into(),
@@ -30,8 +30,8 @@ impl From<GasCoin> for MysGasCoin {
     }
 }
 
-impl From<MysGasCoin> for GasCoin {
-    fn from(gas_coin: MysGasCoin) -> Self {
+impl From<MySoGasCoin> for GasCoin {
+    fn from(gas_coin: MySoGasCoin) -> Self {
         Self {
             object_ref: gas_coin.object_ref.to_object_ref(),
             balance: gas_coin.balance,

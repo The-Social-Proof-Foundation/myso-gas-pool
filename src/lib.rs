@@ -12,7 +12,7 @@ pub mod metrics;
 pub mod object_locks;
 pub mod rpc;
 pub mod storage;
-pub mod mys_client;
+pub mod myso_client;
 #[cfg(test)]
 pub mod test_env;
 pub mod tx_signer;

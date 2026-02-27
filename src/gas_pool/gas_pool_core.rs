@@ -5,7 +5,7 @@
 use crate::metrics::GasPoolCoreMetrics;
 use crate::object_locks::ObjectLockManager;
 use crate::storage::Storage;
-use crate::mys_client::MysClient;
+use crate::myso_client::MySoClient;
 use crate::tx_signer::TxSigner;
 use crate::types::{GasCoin, ReservationID};
 use crate::{retry_forever, retry_with_max_attempts};
@@ -38,7 +38,7 @@ pub struct GasPoolContainer {
 pub struct GasPool {
     signer: Arc<dyn TxSigner>,
     gas_pool_store: Arc<dyn Storage>,
-    mys_client: MysClient,
+    myso_client: MySoClient,
     metrics: Arc<GasPoolCoreMetrics>,
     gas_usage_cap: Arc<GasUsageCap>,
     object_lock_manager: Arc<ObjectLockManager>,
@@ -48,15 +48,15 @@ impl GasPool {
     pub async fn new(
         signer: Arc<dyn TxSigner>,
         gas_pool_store: Arc<dyn Storage>,
-        mys_client: MysClient,
+        myso_client: MySoClient,
         metrics: Arc<GasPoolCoreMetrics>,
         gas_usage_cap: Arc<GasUsageCap>,
     ) -> Arc<Self> {
-        let object_lock_manager = Arc::new(ObjectLockManager::new(Arc::new(mys_client.clone())));
+        let object_lock_manager = Arc::new(ObjectLockManager::new(Arc::new(myso_client.clone())));
         let pool = Self {
             signer,
             gas_pool_store,
-            mys_client,
+            myso_client,
             metrics,
             gas_usage_cap,
             object_lock_manager,
@@ -138,7 +138,7 @@ impl GasPool {
                 );
                 #[cfg(test)]
                 {
-                    self.mys_client.wait_for_object(new_gas_coin).await;
+                    self.myso_client.wait_for_object(new_gas_coin).await;
                     assert_eq!(
                         self.get_total_gas_coin_balance(payment).await,
                         new_balance as u64
@@ -154,7 +154,7 @@ impl GasPool {
                     ?reservation_id,
                     "Querying latest gas state since transaction failed"
                 );
-                self.mys_client
+                self.myso_client
                     .get_latest_gas_objects(payment)
                     .await
                     .into_values()
@@ -214,7 +214,7 @@ impl GasPool {
 
         let tx = Transaction::from_generic_sig_data(tx_data.clone(), vec![sponsor_sig, user_sig]);
         let cur_time = std::time::Instant::now();
-        let effects = self.mys_client.execute_transaction(tx, 3).await?;
+        let effects = self.myso_client.execute_transaction(tx, 3).await?;
         debug!(?reservation_id, "Transaction executed");
         let elapsed = cur_time.elapsed().as_millis();
         self.metrics
@@ -237,7 +237,7 @@ impl GasPool {
     }
 
     async fn get_total_gas_coin_balance(&self, gas_coins: Vec<ObjectID>) -> u64 {
-        let latest = self.mys_client.get_latest_gas_objects(gas_coins).await;
+        let latest = self.myso_client.get_latest_gas_objects(gas_coins).await;
         latest
             .into_values()
             .flatten()
@@ -325,7 +325,7 @@ impl GasPool {
                 if !unlocked_coins.is_empty() {
                     debug!("Coins that are expired: {:?}", unlocked_coins);
                     let latest_coins: Vec<_> = self
-                        .mys_client
+                        .myso_client
                         .get_latest_gas_objects(unlocked_coins.clone())
                         .await
                         .into_values()
@@ -361,14 +361,14 @@ impl GasPoolContainer {
     pub async fn new(
         signer: Arc<dyn TxSigner>,
         gas_pool_store: Arc<dyn Storage>,
-        mys_client: MysClient,
+        myso_client: MySoClient,
         gas_usage_daily_cap: u64,
         metrics: Arc<GasPoolCoreMetrics>,
     ) -> Self {
         let inner = GasPool::new(
             signer,
             gas_pool_store,
-            mys_client,
+            myso_client,
             metrics,
             Arc::new(GasUsageCap::new(gas_usage_daily_cap)),
         )
